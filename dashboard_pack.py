@@ -540,8 +540,11 @@ def generar_html(df, output_path="index.html"):
       font-weight: 600;
       padding: 3px 8px;
       border-radius: 20px;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
       flex-shrink: 0;
+      max-width: 55%;
+      text-align: center;
     }}
 
     .badge-critico  {{ background: #fde8e8; color: #c0392b; }}
