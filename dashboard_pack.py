@@ -332,6 +332,27 @@ def generar_html(df, output_path="index.html"):
       margin-top: 2px;
     }}
 
+    /* ── VIDEO FLOTANTE ── */
+    .video-flotante {{
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }}
+
+    .video-flotante video {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }}
+
     .resumen {{
       display: flex;
       gap: 8px;
@@ -441,6 +462,30 @@ def generar_html(df, output_path="index.html"):
     .btn-alerta[data-nivel="pocas"].activo    {{ background: #e67e22; color: white; border-color: #e67e22; }}
     .btn-alerta[data-nivel="ok"].activo       {{ background: #27ae60; color: white; border-color: #27ae60; }}
 
+    .btn-actualizar {{
+      margin-left: auto;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e0;
+      background: white;
+      color: #4a5568;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }}
+
+    .btn-actualizar:hover {{
+      border-color: #667eea;
+      color: #667eea;
+      background: #f0f4ff;
+    }}
+
     .sin-resultados {{
       display: none;
       grid-column: 1 / -1;
@@ -453,11 +498,9 @@ def generar_html(df, output_path="index.html"):
     /* ── CARDS ── */
     .cards {{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
       padding: 16px;
-      max-width: 1200px;
-      margin: 0 auto;
     }}
 
     .card {{
@@ -540,9 +583,15 @@ def generar_html(df, output_path="index.html"):
     .barra-amarillo                 {{ background: #f1c40f; }}
     .barra-verde                    {{ background: #27ae60; }}
 
+    .cards {{
+      max-width: 1200px;
+      margin: 0 auto;
+    }}
+
     @media (max-width: 400px) {{
       .cards {{ padding: 10px; gap: 10px; }}
       .card-info {{ grid-template-columns: 1fr; }}
+      .video-flotante {{ width: 100px; height: 100px; bottom: 12px; left: 12px; }}
     }}
   </style>
 </head>
@@ -575,10 +624,17 @@ def generar_html(df, output_path="index.html"):
       <button class="btn-alerta" data-nivel="pocas">Pocas sesiones</button>
       <button class="btn-alerta" data-nivel="ok">OK</button>
     </div>
+    <a class="btn-actualizar" href="https://github.com/SebaNazar/dashboard-kinexperience/actions" target="_blank" rel="noopener noreferrer">&#x21BB; Actualizar datos</a>
   </div>
   <div class="cards" id="grid-cards">
     {filas_html}
     <div class="sin-resultados" id="sin-resultados">No hay pacientes que coincidan con los filtros seleccionados.</div>
+  </div>
+
+  <div class="video-flotante">
+    <video autoplay loop muted playsinline>
+      <source src="Paso001.mp4" type="video/mp4">
+    </video>
   </div>
 
   <script>
