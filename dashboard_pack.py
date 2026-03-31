@@ -224,12 +224,27 @@ def generar_html(df, output_path="index.html"):
         cls = alerta_clase(row['Alerta'])
         conteos[cls] += 1
 
+    # Lista de kines únicos para el dropdown
+    kines_unicos = sorted(df['Kine'].dropna().unique().tolist())
+    opciones_kine = '<option value="todos">Todos</option>\n'
+    for k in kines_unicos:
+        opciones_kine += f'        <option value="{k}">{k}</option>\n'
+
     filas_html = ""
     for _, row in df.iterrows():
         cls = alerta_clase(row['Alerta'])
         consumidas = row['Sesiones Consumidas']
         contratadas = row['Sesiones Contratadas']
         restantes = row['Sesiones Restantes']
+        kine_val = str(row['Kine']).replace('"', '&quot;')
+
+        # Nivel de alerta para filtros JS
+        if cls in ('critico', 'rojo'):
+            nivel = 'urgente'
+        elif cls in ('naranja', 'amarillo'):
+            nivel = 'pocas'
+        else:
+            nivel = 'ok'
 
         try:
             pct = int(int(consumidas) / int(contratadas) * 100)
@@ -237,7 +252,7 @@ def generar_html(df, output_path="index.html"):
             pct = 0
 
         filas_html += f"""
-        <div class="card {cls}">
+        <div class="card {cls}" data-kine="{kine_val}" data-nivel="{nivel}">
           <div class="card-top">
             <div class="paciente">{row['Paciente']}</div>
             <div class="alerta-badge badge-{cls}">{row['Alerta']}</div>
@@ -284,23 +299,37 @@ def generar_html(df, output_path="index.html"):
     header {{
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: white;
-      padding: 20px 16px 16px;
+      padding: 14px 16px 12px;
       position: sticky;
       top: 0;
       z-index: 10;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }}
 
-    header h1 {{
-      font-size: 1.25rem;
+    .header-inner {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }}
+
+    .header-logo {{
+      height: 36px;
+      width: auto;
+      flex-shrink: 0;
+      object-fit: contain;
+    }}
+
+    .header-text h1 {{
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: 0.3px;
+      line-height: 1.2;
     }}
 
     .actualizacion {{
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: #a0aec0;
-      margin-top: 4px;
+      margin-top: 2px;
     }}
 
     .resumen {{
@@ -341,6 +370,87 @@ def generar_html(df, output_path="index.html"):
     .res-amarillo {{ background: #fffbf0; color: #d4ac0d; }}
     .res-verde {{ background: #f0fff4; color: #27ae60; }}
 
+    /* ── TOOLBAR DE FILTROS ── */
+    .toolbar {{
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }}
+
+    .toolbar-group {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }}
+
+    .toolbar label {{
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #4a5568;
+      white-space: nowrap;
+    }}
+
+    #filtro-kine {{
+      font-size: 0.8rem;
+      padding: 5px 28px 5px 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      background: white;
+      color: #2d3748;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23718096'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+    }}
+
+    #filtro-kine:focus {{
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102,126,234,0.2);
+    }}
+
+    .btn-alerta {{
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e0;
+      background: white;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }}
+
+    .btn-alerta:hover {{
+      border-color: #a0aec0;
+      background: #f7fafc;
+    }}
+
+    .btn-alerta.activo {{
+      border-color: transparent;
+    }}
+
+    .btn-alerta[data-nivel="todos"].activo    {{ background: #1a1a2e; color: white; }}
+    .btn-alerta[data-nivel="urgente"].activo  {{ background: #c0392b; color: white; border-color: #c0392b; }}
+    .btn-alerta[data-nivel="pocas"].activo    {{ background: #e67e22; color: white; border-color: #e67e22; }}
+    .btn-alerta[data-nivel="ok"].activo       {{ background: #27ae60; color: white; border-color: #27ae60; }}
+
+    .sin-resultados {{
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 16px;
+      color: #718096;
+      font-size: 0.9rem;
+    }}
+
+    /* ── CARDS ── */
     .cards {{
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -438,13 +548,74 @@ def generar_html(df, output_path="index.html"):
 </head>
 <body>
   <header>
-    <h1>Dashboard Packs Kinexperience</h1>
-    <p class="actualizacion">Última actualización: {ahora}</p>
+    <div class="header-inner">
+      <img
+        class="header-logo"
+        src="https://www.kinexperience.cl/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FLOGO-FONDO-OSCURO.81c302e1.png&w=128&q=75"
+        alt="Kinexperience"
+      >
+      <div class="header-text">
+        <h1>Dashboard Packs Kinexperience</h1>
+        <p class="actualizacion">Última actualización: {ahora}</p>
+      </div>
+    </div>
   </header>
   {resumen_html}
-  <div class="cards">
-    {filas_html}
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <label for="filtro-kine">Filtrar por Kine:</label>
+      <select id="filtro-kine">
+        {opciones_kine}
+      </select>
+    </div>
+    <div class="toolbar-group">
+      <label>Alerta:</label>
+      <button class="btn-alerta activo" data-nivel="todos">Todos</button>
+      <button class="btn-alerta" data-nivel="urgente">Urgente</button>
+      <button class="btn-alerta" data-nivel="pocas">Pocas sesiones</button>
+      <button class="btn-alerta" data-nivel="ok">OK</button>
+    </div>
   </div>
+  <div class="cards" id="grid-cards">
+    {filas_html}
+    <div class="sin-resultados" id="sin-resultados">No hay pacientes que coincidan con los filtros seleccionados.</div>
+  </div>
+
+  <script>
+    (function () {{
+      var selectKine   = document.getElementById('filtro-kine');
+      var btnAlertas   = document.querySelectorAll('.btn-alerta');
+      var cards        = document.querySelectorAll('#grid-cards .card');
+      var sinResultados = document.getElementById('sin-resultados');
+      var nivelActivo  = 'todos';
+
+      function aplicarFiltros() {{
+        var kineSeleccionado = selectKine.value;
+        var visibles = 0;
+
+        cards.forEach(function (card) {{
+          var matchKine  = kineSeleccionado === 'todos' || card.dataset.kine === kineSeleccionado;
+          var matchNivel = nivelActivo === 'todos'   || card.dataset.nivel === nivelActivo;
+          var mostrar    = matchKine && matchNivel;
+          card.style.display = mostrar ? '' : 'none';
+          if (mostrar) visibles++;
+        }});
+
+        sinResultados.style.display = visibles === 0 ? 'block' : 'none';
+      }}
+
+      selectKine.addEventListener('change', aplicarFiltros);
+
+      btnAlertas.forEach(function (btn) {{
+        btn.addEventListener('click', function () {{
+          btnAlertas.forEach(function (b) {{ b.classList.remove('activo'); }});
+          btn.classList.add('activo');
+          nivelActivo = btn.dataset.nivel;
+          aplicarFiltros();
+        }});
+      }});
+    }})();
+  </script>
 </body>
 </html>"""
 
