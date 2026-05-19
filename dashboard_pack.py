@@ -1,3 +1,4 @@
+import argparse
 import gspread
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -5,6 +6,7 @@ import pandas as pd
 import unicodedata
 import json
 import os
+from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -36,7 +38,6 @@ def normalizar(texto):
 
 # ── CONEXIÓN A GOOGLE SHEETS ────────────────────────────────────
 def conectar():
-    # Modo GitHub Actions: construir token en memoria desde variables de entorno
     refresh_token_env = os.getenv("GOOGLE_REFRESH_TOKEN")
     if refresh_token_env:
         client_id     = os.getenv("GOOGLE_CLIENT_ID")
@@ -51,7 +52,6 @@ def conectar():
                     "https://www.googleapis.com/auth/drive"]
         )
     else:
-        # Modo local: leer token desde archivo
         with open(TOKEN_PATH) as f:
             token_data = json.load(f)
         creds = Credentials(
@@ -78,34 +78,31 @@ def leer_sheet(cliente, sheet_id, pestaña):
 
 # ── LÓGICA PRINCIPAL ────────────────────────────────────────────
 def calcular_dashboard(ficha, registro):
-    # Filtrar solo pacientes pack activos o pausados
     pack_df = ficha[
         (~ficha['extension'].str.lower().str.contains('permanente', na=True)) &
         (ficha['estado'].isin(['Activo', 'Pausado']))
     ].copy()
 
-    # Normalizar nombres y kines en ficha
     pack_df['nombre_norm'] = pack_df['nombre_paciente'].apply(normalizar)
     pack_df['kine_norm']   = pack_df['kine'].apply(normalizar)
-
-    # Parsear inicio_pack
     pack_df['inicio_pack'] = pd.to_datetime(
         pack_df['inicio_pack'], dayfirst=True, errors='coerce'
     )
 
-    # Normalizar nombres y kines en registro
     registro['nombre_norm'] = registro['Nombre del Paciente'].apply(normalizar)
     registro['kine_norm']   = registro['Nombre del Kinesiólogo '].apply(normalizar)
     registro['fecha']       = pd.to_datetime(
         registro['Fecha de la sesión realizada'], dayfirst=True, errors='coerce'
     )
 
-    # Estados que cuentan como sesión consumida
     estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso']
-    registro_valido = registro[registro['Estado de la sesión'].isin(estados_consumidos)]
+    estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida']
 
-    # ── CRUCE Y CONTEO ──────────────────────────────────────────
+    registro_valido = registro[registro['Estado de la sesión'].isin(estados_consumidos)]
+    registro_modal  = registro[registro['Estado de la sesión'].isin(estados_modal)]
+
     resultados = []
+    sesiones_por_paciente = {}
 
     for _, paciente in pack_df.iterrows():
         nombre_p  = paciente['nombre_norm']
@@ -113,7 +110,6 @@ def calcular_dashboard(ficha, registro):
         inicio    = paciente['inicio_pack']
         cantidad  = paciente['cantidad_sesiones']
 
-        # Buscar coincidencias por nombre (parcial)
         def coincide_nombre(nombre_reg):
             palabras = nombre_reg.split()
             return all(p in nombre_p for p in palabras)
@@ -121,41 +117,43 @@ def calcular_dashboard(ficha, registro):
         candidatos = registro_valido[
             registro_valido['nombre_norm'].apply(coincide_nombre)
         ]
+        candidatos_modal = registro_modal[
+            registro_modal['nombre_norm'].apply(coincide_nombre)
+        ]
 
-        # Si hay ambigüedad, desempatar con kine
         if len(candidatos['nombre_norm'].unique()) > 1:
             candidatos_kine = candidatos[candidatos['kine_norm'] == kine_p]
             if len(candidatos_kine) > 0:
                 candidatos = candidatos_kine
+                candidatos_modal = candidatos_modal[candidatos_modal['kine_norm'] == kine_p]
             else:
-                # Marcar para revisión manual
                 resultados.append({
-                    'Paciente':            paciente['nombre_paciente'],
-                    'Kine':                paciente['kine'],
-                    'Pack':                paciente['extension'],
-                    'Estado':              paciente['estado'],
-                    'Inicio Pack':         str(paciente['inicio_pack'].date()) if pd.notna(inicio) else '?',
+                    'Paciente':             paciente['nombre_paciente'],
+                    'Kine':                 paciente['kine'],
+                    'Pack':                 paciente['extension'],
+                    'Estado':               paciente['estado'],
+                    'Inicio Pack':          str(paciente['inicio_pack'].date()) if pd.notna(inicio) else '?',
                     'Sesiones Contratadas': cantidad,
-                    'Sesiones Consumidas': '?',
-                    'Sesiones Restantes':  '?',
-                    'Alerta':              '🚨 REVISAR MANUALMENTE'
+                    'Sesiones Consumidas':  '?',
+                    'Sesiones Restantes':   '?',
+                    'Alerta':               '🚨 REVISAR MANUALMENTE'
                 })
+                sesiones_por_paciente[paciente['nombre_paciente']] = []
                 continue
 
-        # Filtrar desde inicio_pack
         if pd.notna(inicio):
-            candidatos = candidatos[candidatos['fecha'] >= inicio]
+            candidatos       = candidatos[candidatos['fecha'] >= inicio]
+            candidatos_modal = candidatos_modal[candidatos_modal['fecha'] >= inicio]
 
         sesiones_consumidas = len(candidatos)
 
         try:
             contratadas = int(cantidad)
-        except:
+        except Exception:
             contratadas = 0
 
         restantes = contratadas - sesiones_consumidas
 
-        # Definir alerta
         if restantes > 2:
             alerta = '✅ OK'
         elif restantes == 2:
@@ -166,6 +164,18 @@ def calcular_dashboard(ficha, registro):
             alerta = '🔴 Pack terminado'
         else:
             alerta = f'🚨 CRÍTICO: {abs(restantes)} sesión(es) sin cobrar'
+
+        # Construir detalle de sesiones para el modal, ordenadas por fecha
+        detalle = []
+        sesiones_ordenadas = candidatos_modal.sort_values('fecha')
+        for idx, (_, s) in enumerate(sesiones_ordenadas.iterrows(), start=1):
+            fecha_str = s['fecha'].strftime('%d/%m/%Y') if pd.notna(s['fecha']) else '?'
+            detalle.append({
+                'n':          idx,
+                'Fecha':      fecha_str,
+                'Estado':     s['Estado de la sesión'],
+                'fuera_pack': idx > contratadas
+            })
 
         resultados.append({
             'Paciente':             paciente['nombre_paciente'],
@@ -178,27 +188,142 @@ def calcular_dashboard(ficha, registro):
             'Sesiones Restantes':   restantes,
             'Alerta':               alerta
         })
+        sesiones_por_paciente[paciente['nombre_paciente']] = detalle
 
-    return pd.DataFrame(resultados).sort_values('Sesiones Restantes')
+    df = pd.DataFrame(resultados).sort_values('Sesiones Restantes')
+    return df, sesiones_por_paciente
 
 # ── ESCRIBIR OUTPUT EN SHEETS ───────────────────────────────────
 def escribir_dashboard(cliente, df):
-    sheet  = cliente.open_by_key(FICHA_CENTRAL_ID)
+    sheet = cliente.open_by_key(FICHA_CENTRAL_ID)
 
-    # Crear pestaña si no existe
     try:
         ws = sheet.worksheet(PESTAÑA_OUTPUT)
         ws.clear()
-    except:
+    except Exception:
         ws = sheet.add_worksheet(title=PESTAÑA_OUTPUT, rows=200, cols=10)
 
-    # Escribir encabezados y datos
     encabezados = list(df.columns)
     filas = [encabezados] + df.values.tolist()
     ws.update(filas, 'A1')
 
     print(f"✅ Dashboard escrito en pestaña '{PESTAÑA_OUTPUT}'")
     print(f"   {len(df)} pacientes pack procesados")
+
+# ── ALERTAS WHATSAPP ────────────────────────────────────────────
+def enviar_alertas_whatsapp(df, dry_run=False):
+    script_dir  = Path(__file__).parent
+    config_path = script_dir / "config.json"
+    state_path  = script_dir / ".whatsapp_alertas_state.json"
+
+    if not config_path.exists():
+        print("⚠️  config.json no encontrado — saltando alertas WhatsApp")
+        return
+
+    with open(config_path, encoding="utf-8") as f:
+        config = json.load(f)
+
+    fijos = config["whatsapp"]["fijos"]
+    # Normalizar claves del config para comparación robusta
+    kines_cfg = {normalizar(k): v for k, v in config["whatsapp"]["kines"].items()}
+
+    estado_previo = {}
+    if state_path.exists():
+        with open(state_path, encoding="utf-8") as f:
+            estado_previo = json.load(f)
+
+    sid   = os.getenv("TWILIO_ACCOUNT_SID")
+    token = os.getenv("TWILIO_AUTH_TOKEN")
+    from_ = "whatsapp:+14155238886"
+
+    if not dry_run:
+        if not sid or not token:
+            print("⚠️  TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN no configurados — saltando alertas")
+            return
+        from twilio.rest import Client as TwilioClient
+        twilio_client = TwilioClient(sid, token)
+
+    estado_nuevo = dict(estado_previo)
+    alertas_enviadas = 0
+
+    for _, row in df.iterrows():
+        restantes = row['Sesiones Restantes']
+
+        # Solo filas numéricas con restantes <= 1
+        try:
+            restantes_int = int(restantes)
+        except (ValueError, TypeError):
+            continue
+
+        if restantes_int > 1:
+            continue
+
+        paciente = str(row['Paciente'])
+        kine     = str(row['Kine'])
+
+        if restantes_int == 1:
+            estado_actual = "1"
+        elif restantes_int == 0:
+            estado_actual = "0"
+        else:
+            estado_actual = str(restantes_int)  # negativo, e.g. "-2"
+
+        if estado_previo.get(paciente) == estado_actual:
+            print(f"   ⏭️  Sin cambio para {paciente} (restantes={restantes_int}) — no se reenvía")
+            continue
+
+        # Determinar destinatarios
+        modo_prueba = config.get("modo_prueba", False)
+        if modo_prueba:
+            destinatarios = [fijos["seba"]]
+        else:
+            destinatarios = [fijos["seba"], fijos["mauricio"]]
+            kine_norm = normalizar(kine)
+            if kine_norm in kines_cfg:
+                numero_kine = kines_cfg[kine_norm]
+                if numero_kine not in destinatarios:
+                    destinatarios.append(numero_kine)
+            else:
+                print(f"   ⚠️  Kine '{kine}' no está en config.json — se omite su número")
+
+        if restantes_int < 0:
+            detalle_restantes = f"⚠️ {abs(restantes_int)} sesión(es) SIN COBRAR"
+        elif restantes_int == 0:
+            detalle_restantes = "Pack terminado (0 restantes)"
+        else:
+            detalle_restantes = f"Queda 1 sesión"
+
+        mensaje = (
+            f"⚠️ *Alerta Pack Kinexperience*\n"
+            f"Paciente: {paciente}\n"
+            f"Kine: {kine}\n"
+            f"Sesiones restantes: {restantes_int} — {detalle_restantes}"
+        )
+
+        for numero in destinatarios:
+            if dry_run:
+                print(f"   [DRY-RUN] → whatsapp:{numero}")
+                print(f"   {mensaje}")
+                print()
+            else:
+                try:
+                    msg = twilio_client.messages.create(
+                        from_=from_,
+                        to=f"whatsapp:{numero}",
+                        body=mensaje
+                    )
+                    print(f"   ✅ {numero} | SID: {msg.sid} | status: {msg.status}")
+                except Exception as e:
+                    print(f"   ❌ Error enviando a {numero}: {e}")
+
+        estado_nuevo[paciente] = estado_actual
+        alertas_enviadas += 1
+
+    with open(state_path, "w", encoding="utf-8") as f:
+        json.dump(estado_nuevo, f, ensure_ascii=False, indent=2)
+
+    modo = "[DRY-RUN] " if dry_run else ""
+    print(f"✅ {modo}Alertas WhatsApp procesadas: {alertas_enviadas} paciente(s) con cambio de estado")
 
 # ── GENERAR HTML ────────────────────────────────────────────────
 def alerta_clase(alerta):
@@ -214,17 +339,14 @@ def alerta_clase(alerta):
     else:
         return 'verde'
 
-def generar_html(df, output_path="index.html"):
+def generar_html(df, sesiones_por_paciente, output_path="index.html"):
     ahora = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-    conteos = {
-        'critico': 0, 'rojo': 0, 'naranja': 0, 'amarillo': 0, 'verde': 0
-    }
+    conteos = {'critico': 0, 'rojo': 0, 'naranja': 0, 'amarillo': 0, 'verde': 0}
     for _, row in df.iterrows():
         cls = alerta_clase(row['Alerta'])
         conteos[cls] += 1
 
-    # Lista de kines únicos para el dropdown
     kines_unicos = sorted(df['Kine'].dropna().unique().tolist())
     opciones_kine = '<option value="todos">Todos</option>\n'
     for k in kines_unicos:
@@ -232,13 +354,14 @@ def generar_html(df, output_path="index.html"):
 
     filas_html = ""
     for _, row in df.iterrows():
-        cls = alerta_clase(row['Alerta'])
-        consumidas = row['Sesiones Consumidas']
+        cls         = alerta_clase(row['Alerta'])
+        consumidas  = row['Sesiones Consumidas']
         contratadas = row['Sesiones Contratadas']
-        restantes = row['Sesiones Restantes']
-        kine_val = str(row['Kine']).replace('"', '&quot;')
+        restantes   = row['Sesiones Restantes']
+        kine_val    = str(row['Kine']).replace('"', '&quot;')
+        paciente    = str(row['Paciente'])
+        inicio_pack = str(row['Inicio Pack'])
 
-        # Nivel de alerta para filtros JS
         if cls in ('critico', 'rojo'):
             nivel = 'urgente'
         elif cls in ('naranja', 'amarillo'):
@@ -248,19 +371,35 @@ def generar_html(df, output_path="index.html"):
 
         try:
             pct = int(int(consumidas) / int(contratadas) * 100)
-        except:
+        except Exception:
             pct = 0
 
+        lista_sesiones = sesiones_por_paciente.get(paciente, [])
+        sesiones_json = json.dumps(lista_sesiones, ensure_ascii=False).replace("'", "&#39;")
+
+        paciente_escaped = paciente.replace('"', '&quot;').replace("'", "&#39;")
+        kine_escaped     = str(row['Kine']).replace('"', '&quot;').replace("'", "&#39;")
+
         filas_html += f"""
-        <div class="card {cls}" data-kine="{kine_val}" data-nivel="{nivel}">
+        <div class="card {cls}"
+             data-kine="{kine_val}"
+             data-nivel="{nivel}"
+             data-paciente="{paciente_escaped}"
+             data-kine-display="{kine_escaped}"
+             data-inicio="{inicio_pack}"
+             data-contratadas="{contratadas}"
+             data-consumidas="{consumidas}"
+             data-restantes="{restantes}"
+             data-alerta-cls="{cls}"
+             data-sesiones='{sesiones_json}'>
           <div class="card-top">
-            <div class="paciente">{row['Paciente']}</div>
+            <div class="paciente">{paciente}</div>
             <div class="alerta-badge badge-{cls}">{row['Alerta']}</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> {row['Kine']}</span>
             <span><strong>Pack:</strong> {row['Pack']}</span>
-            <span><strong>Inicio:</strong> {row['Inicio Pack']}</span>
+            <span><strong>Inicio:</strong> {inicio_pack}</span>
             <span><strong>Estado:</strong> {row['Estado']}</span>
           </div>
           <div class="progreso-label">
@@ -270,6 +409,7 @@ def generar_html(df, output_path="index.html"):
           <div class="barra-fondo">
             <div class="barra-fill barra-{cls}" style="width:{min(pct,100)}%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>"""
 
     resumen_html = f"""
@@ -386,10 +526,10 @@ def generar_html(df, output_path="index.html"):
       opacity: 0.8;
     }}
 
-    .res-critico {{ background: #fff1f0; color: #c0392b; }}
-    .res-naranja {{ background: #fff7f0; color: #e67e22; }}
+    .res-critico  {{ background: #fff1f0; color: #c0392b; }}
+    .res-naranja  {{ background: #fff7f0; color: #e67e22; }}
     .res-amarillo {{ background: #fffbf0; color: #d4ac0d; }}
-    .res-verde {{ background: #f0fff4; color: #27ae60; }}
+    .res-verde    {{ background: #f0fff4; color: #27ae60; }}
 
     /* ── TOOLBAR DE FILTROS ── */
     .toolbar {{
@@ -501,6 +641,8 @@ def generar_html(df, output_path="index.html"):
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
       padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
     }}
 
     .card {{
@@ -573,6 +715,7 @@ def generar_html(df, output_path="index.html"):
       border-radius: 4px;
       height: 6px;
       overflow: hidden;
+      margin-bottom: 10px;
     }}
 
     .barra-fill {{
@@ -581,20 +724,171 @@ def generar_html(df, output_path="index.html"):
       transition: width 0.3s;
     }}
 
-    .barra-critico, .barra-rojo     {{ background: #e74c3c; }}
-    .barra-naranja                  {{ background: #e67e22; }}
-    .barra-amarillo                 {{ background: #f1c40f; }}
-    .barra-verde                    {{ background: #27ae60; }}
+    .barra-critico, .barra-rojo {{ background: #e74c3c; }}
+    .barra-naranja               {{ background: #e67e22; }}
+    .barra-amarillo              {{ background: #f1c40f; }}
+    .barra-verde                 {{ background: #27ae60; }}
 
-    .cards {{
-      max-width: 1200px;
-      margin: 0 auto;
+    .btn-detalle {{
+      width: 100%;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #667eea;
+      background: none;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }}
+
+    .btn-detalle:hover {{
+      background: #f0f4ff;
+      border-color: #667eea;
+    }}
+
+    /* ── MODAL ── */
+    .modal-overlay {{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }}
+
+    .modal-overlay.hidden {{ display: none; }}
+
+    .modal {{
+      background: white;
+      border-radius: 16px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }}
+
+    .modal-close {{
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: #f0f2f5;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4a5568;
+      transition: background 0.15s;
+    }}
+
+    .modal-close:hover {{ background: #e2e8f0; }}
+
+    .modal-header {{ margin-bottom: 14px; padding-right: 32px; }}
+
+    .modal-header h2 {{
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 3px;
+    }}
+
+    .modal-header p {{
+      font-size: 0.78rem;
+      color: #718096;
+    }}
+
+    .modal-resumen {{
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }}
+
+    .modal-chip {{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      gap: 2px;
+    }}
+
+    .modal-chip-num {{
+      font-size: 1.3rem;
+      font-weight: 700;
+    }}
+
+    .modal-chip-label {{
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.75;
+    }}
+
+    .chip-contratadas {{ background: #f0f4ff; color: #3b5bdb; }}
+    .chip-consumidas  {{ background: #f0f2f5; color: #495057; }}
+    .chip-restantes-critico, .chip-restantes-rojo   {{ background: #fff1f0; color: #c0392b; }}
+    .chip-restantes-naranja  {{ background: #fff7f0; color: #e67e22; }}
+    .chip-restantes-amarillo {{ background: #fffbf0; color: #d4ac0d; }}
+    .chip-restantes-verde    {{ background: #f0fff4; color: #27ae60; }}
+
+    .modal-tabla-wrap {{ overflow-x: auto; margin-bottom: 14px; }}
+
+    .modal-tabla {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }}
+
+    .modal-tabla th {{
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid #e2e8f0;
+    }}
+
+    .modal-tabla td {{
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f2f5;
+      color: #2d3748;
+    }}
+
+    .modal-tabla tr:last-child td {{ border-bottom: none; }}
+
+    .modal-tabla tr.fuera-pack td {{
+      color: #c0392b;
+      font-weight: 600;
+    }}
+
+    .modal-leyenda {{
+      font-size: 0.72rem;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      line-height: 1.8;
     }}
 
     @media (max-width: 400px) {{
       .cards {{ padding: 10px; gap: 10px; }}
       .card-info {{ grid-template-columns: 1fr; }}
       .video-flotante {{ width: 100px; height: 100px; bottom: 12px; left: 12px; }}
+      .modal {{ padding: 18px 14px; }}
     }}
   </style>
 </head>
@@ -640,26 +934,51 @@ def generar_html(df, output_path="index.html"):
     </video>
   </div>
 
+  <!-- Modal historial de sesiones -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">✕</button>
+      <div class="modal-header">
+        <h2 id="modal-paciente"></h2>
+        <p id="modal-sub"></p>
+      </div>
+      <div class="modal-resumen" id="modal-resumen"></div>
+      <div class="modal-tabla-wrap">
+        <table class="modal-tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="modal-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-leyenda">
+        ✅ Realizada &nbsp;·&nbsp; 🔄 Recuperada &nbsp;·&nbsp; ⏸️ Suspendida &nbsp;·&nbsp; ⚠️ Fuera del pack
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {{
-      var selectKine   = document.getElementById('filtro-kine');
-      var btnAlertas   = document.querySelectorAll('.btn-alerta');
-      var cards        = document.querySelectorAll('#grid-cards .card');
+      var selectKine    = document.getElementById('filtro-kine');
+      var btnAlertas    = document.querySelectorAll('.btn-alerta');
+      var cards         = document.querySelectorAll('#grid-cards .card');
       var sinResultados = document.getElementById('sin-resultados');
-      var nivelActivo  = 'todos';
+      var nivelActivo   = 'todos';
 
       function aplicarFiltros() {{
         var kineSeleccionado = selectKine.value;
         var visibles = 0;
-
         cards.forEach(function (card) {{
           var matchKine  = kineSeleccionado === 'todos' || card.dataset.kine === kineSeleccionado;
-          var matchNivel = nivelActivo === 'todos'   || card.dataset.nivel === nivelActivo;
+          var matchNivel = nivelActivo === 'todos' || card.dataset.nivel === nivelActivo;
           var mostrar    = matchKine && matchNivel;
           card.style.display = mostrar ? '' : 'none';
           if (mostrar) visibles++;
         }});
-
         sinResultados.style.display = visibles === 0 ? 'block' : 'none';
       }}
 
@@ -673,6 +992,92 @@ def generar_html(df, output_path="index.html"):
           aplicarFiltros();
         }});
       }});
+
+      /* ── MODAL ── */
+      var overlay  = document.getElementById('modal-overlay');
+      var closeBtn = document.getElementById('modal-close-btn');
+
+      function estadoEmoji(estado) {{
+        var map = {{
+          'Realizada':             '✅',
+          'Recuperada':            '🔄',
+          'Evaluación de ingreso': '✅',
+          'Suspendida':            '⏸️'
+        }};
+        return (map[estado] || '') + ' ' + estado;
+      }}
+
+      function abrirModal(card) {{
+        var paciente    = card.dataset.paciente;
+        var kine        = card.dataset.kineDisplay;
+        var inicio      = card.dataset.inicio;
+        var contratadas = parseInt(card.dataset.contratadas) || 0;
+        var consumidas  = parseInt(card.dataset.consumidas)  || 0;
+        var restantes   = parseInt(card.dataset.restantes);
+        var alertaCls   = card.dataset.alertaCls;
+        var sesiones    = JSON.parse(card.dataset.sesiones);
+
+        document.getElementById('modal-paciente').textContent = paciente;
+        document.getElementById('modal-sub').textContent =
+          'Kine: ' + kine + '  ·  Inicio pack: ' + inicio;
+
+        var resumenEl = document.getElementById('modal-resumen');
+        var chipRestClass = 'chip-restantes-' + alertaCls;
+        resumenEl.innerHTML =
+          '<div class="modal-chip chip-contratadas">' +
+            '<span class="modal-chip-num">' + contratadas + '</span>' +
+            '<span class="modal-chip-label">Contratadas</span>' +
+          '</div>' +
+          '<div class="modal-chip chip-consumidas">' +
+            '<span class="modal-chip-num">' + consumidas + '</span>' +
+            '<span class="modal-chip-label">Consumidas</span>' +
+          '</div>' +
+          '<div class="modal-chip ' + chipRestClass + '">' +
+            '<span class="modal-chip-num">' + restantes + '</span>' +
+            '<span class="modal-chip-label">Restantes</span>' +
+          '</div>';
+
+        var tbody = document.getElementById('modal-tbody');
+        tbody.innerHTML = '';
+        if (sesiones.length === 0) {{
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#718096;padding:20px">Sin sesiones registradas</td></tr>';
+        }} else {{
+          sesiones.forEach(function (s) {{
+            var tr = document.createElement('tr');
+            if (s.fuera_pack) tr.classList.add('fuera-pack');
+            var prefix = s.fuera_pack ? '⚠️ ' : '';
+            tr.innerHTML =
+              '<td>' + prefix + s.n + '</td>' +
+              '<td>' + s.Fecha + '</td>' +
+              '<td>' + estadoEmoji(s.Estado) + '</td>';
+            tbody.appendChild(tr);
+          }});
+        }}
+
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }}
+
+      document.getElementById('grid-cards').addEventListener('click', function (e) {{
+        var btn = e.target.closest('.btn-detalle');
+        if (!btn) return;
+        abrirModal(btn.closest('.card'));
+      }});
+
+      function cerrarModal() {{
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }}
+
+      closeBtn.addEventListener('click', cerrarModal);
+
+      overlay.addEventListener('click', function (e) {{
+        if (e.target === overlay) cerrarModal();
+      }});
+
+      document.addEventListener('keydown', function (e) {{
+        if (e.key === 'Escape') cerrarModal();
+      }});
     }})();
   </script>
 </body>
@@ -684,7 +1089,12 @@ def generar_html(df, output_path="index.html"):
     print(f"✅ HTML generado: {os.path.abspath(output_path)}")
 
 # ── MAIN ────────────────────────────────────────────────────────
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description="Dashboard Packs Kinexperience")
+    parser.add_argument('--dry-run',      action='store_true', help='Simula alertas WhatsApp sin enviar mensajes reales')
+    parser.add_argument('--no-whatsapp',  action='store_true', help='Salta completamente el envío de alertas WhatsApp')
+    args = parser.parse_args()
+
     print("Conectando a Google Sheets...")
     cliente = conectar()
 
@@ -695,7 +1105,7 @@ if __name__ == "__main__":
     registro = leer_sheet(cliente, REGISTRO_ID, PESTAÑA_REGISTRO)
 
     print("Calculando dashboard...")
-    dashboard = calcular_dashboard(ficha, registro)
+    dashboard, sesiones_por_paciente = calcular_dashboard(ficha, registro)
 
     print(dashboard[['Paciente', 'Sesiones Restantes', 'Alerta']].to_string())
 
@@ -703,4 +1113,13 @@ if __name__ == "__main__":
     escribir_dashboard(cliente, dashboard)
 
     print("\nGenerando HTML...")
-    generar_html(dashboard, output_path="index.html")
+    generar_html(dashboard, sesiones_por_paciente, output_path="index.html")
+
+    if not args.no_whatsapp:
+        print("\nProcesando alertas WhatsApp...")
+        enviar_alertas_whatsapp(dashboard, dry_run=args.dry_run)
+    else:
+        print("\n⏭️  Alertas WhatsApp desactivadas (--no-whatsapp)")
+
+if __name__ == "__main__":
+    main()

@@ -104,10 +104,10 @@
       opacity: 0.8;
     }
 
-    .res-critico { background: #fff1f0; color: #c0392b; }
-    .res-naranja { background: #fff7f0; color: #e67e22; }
+    .res-critico  { background: #fff1f0; color: #c0392b; }
+    .res-naranja  { background: #fff7f0; color: #e67e22; }
     .res-amarillo { background: #fffbf0; color: #d4ac0d; }
-    .res-verde { background: #f0fff4; color: #27ae60; }
+    .res-verde    { background: #f0fff4; color: #27ae60; }
 
     /* ── TOOLBAR DE FILTROS ── */
     .toolbar {
@@ -219,6 +219,8 @@
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
       padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .card {
@@ -291,6 +293,7 @@
       border-radius: 4px;
       height: 6px;
       overflow: hidden;
+      margin-bottom: 10px;
     }
 
     .barra-fill {
@@ -299,20 +302,171 @@
       transition: width 0.3s;
     }
 
-    .barra-critico, .barra-rojo     { background: #e74c3c; }
-    .barra-naranja                  { background: #e67e22; }
-    .barra-amarillo                 { background: #f1c40f; }
-    .barra-verde                    { background: #27ae60; }
+    .barra-critico, .barra-rojo { background: #e74c3c; }
+    .barra-naranja               { background: #e67e22; }
+    .barra-amarillo              { background: #f1c40f; }
+    .barra-verde                 { background: #27ae60; }
 
-    .cards {
-      max-width: 1200px;
-      margin: 0 auto;
+    .btn-detalle {
+      width: 100%;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #667eea;
+      background: none;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-detalle:hover {
+      background: #f0f4ff;
+      border-color: #667eea;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.hidden { display: none; }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: #f0f2f5;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4a5568;
+      transition: background 0.15s;
+    }
+
+    .modal-close:hover { background: #e2e8f0; }
+
+    .modal-header { margin-bottom: 14px; padding-right: 32px; }
+
+    .modal-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 3px;
+    }
+
+    .modal-header p {
+      font-size: 0.78rem;
+      color: #718096;
+    }
+
+    .modal-resumen {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .modal-chip {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      gap: 2px;
+    }
+
+    .modal-chip-num {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .modal-chip-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.75;
+    }
+
+    .chip-contratadas { background: #f0f4ff; color: #3b5bdb; }
+    .chip-consumidas  { background: #f0f2f5; color: #495057; }
+    .chip-restantes-critico, .chip-restantes-rojo   { background: #fff1f0; color: #c0392b; }
+    .chip-restantes-naranja  { background: #fff7f0; color: #e67e22; }
+    .chip-restantes-amarillo { background: #fffbf0; color: #d4ac0d; }
+    .chip-restantes-verde    { background: #f0fff4; color: #27ae60; }
+
+    .modal-tabla-wrap { overflow-x: auto; margin-bottom: 14px; }
+
+    .modal-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .modal-tabla th {
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-tabla td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f2f5;
+      color: #2d3748;
+    }
+
+    .modal-tabla tr:last-child td { border-bottom: none; }
+
+    .modal-tabla tr.fuera-pack td {
+      color: #c0392b;
+      font-weight: 600;
+    }
+
+    .modal-leyenda {
+      font-size: 0.72rem;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      line-height: 1.8;
     }
 
     @media (max-width: 400px) {
       .cards { padding: 10px; gap: 10px; }
       .card-info { grid-template-columns: 1fr; }
       .video-flotante { width: 100px; height: 100px; bottom: 12px; left: 12px; }
+      .modal { padding: 18px 14px; }
     }
   </style>
 </head>
@@ -326,16 +480,16 @@
       >
       <div class="header-text">
         <h1>Dashboard Packs Kinexperience</h1>
-        <p class="actualizacion">Última actualización: 31/03/2026 08:50</p>
+        <p class="actualizacion">Última actualización: 19/05/2026 19:07</p>
       </div>
     </div>
   </header>
   
       <div class="resumen">
-        <div class="res-item res-critico"><span class="res-num">3</span><span class="res-label">Urgente</span></div>
-        <div class="res-item res-naranja"><span class="res-num">1</span><span class="res-label">1 sesión</span></div>
-        <div class="res-item res-amarillo"><span class="res-num">1</span><span class="res-label">2 sesiones</span></div>
-        <div class="res-item res-verde"><span class="res-num">18</span><span class="res-label">OK</span></div>
+        <div class="res-item res-critico"><span class="res-num">4</span><span class="res-label">Urgente</span></div>
+        <div class="res-item res-naranja"><span class="res-num">3</span><span class="res-label">1 sesión</span></div>
+        <div class="res-item res-amarillo"><span class="res-num">4</span><span class="res-label">2 sesiones</span></div>
+        <div class="res-item res-verde"><span class="res-num">17</span><span class="res-label">OK</span></div>
       </div>
   <div class="toolbar">
     <div class="toolbar-group">
@@ -344,11 +498,13 @@
         <option value="todos">Todos</option>
         <option value="Daniela Jaque">Daniela Jaque</option>
         <option value="Fernanda Pino">Fernanda Pino</option>
+        <option value="Francisca Campos">Francisca Campos</option>
         <option value="Guillermo Silva">Guillermo Silva</option>
         <option value="José Aguilar">José Aguilar</option>
         <option value="Katalina Correa">Katalina Correa</option>
         <option value="Marcia Reveco">Marcia Reveco</option>
         <option value="Patricio Orrego">Patricio Orrego</option>
+        <option value="Sebastián Nazar">Sebastián Nazar</option>
         <option value="Sebastián de la Peña">Sebastián de la Peña</option>
 
       </select>
@@ -364,91 +520,235 @@
   </div>
   <div class="cards" id="grid-cards">
     
-        <div class="card critico" data-kine="Sebastián de la Peña" data-nivel="urgente">
-          <div class="card-top">
-            <div class="paciente">Ricardo Hempel y Esposa</div>
-            <div class="alerta-badge badge-critico">🚨 CRÍTICO: 6 sesión(es) sin cobrar</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> Sebastián de la Peña</span>
-            <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-01-28</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            16 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>-6 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-critico" style="width:100%"></div>
-          </div>
-        </div>
-        <div class="card critico" data-kine="Marcia Reveco" data-nivel="urgente">
+        <div class="card critico"
+             data-kine="Marcia Reveco"
+             data-nivel="urgente"
+             data-paciente="Francisco Torre Vega"
+             data-kine-display="Marcia Reveco"
+             data-inicio="2026-03-27"
+             data-contratadas="10"
+             data-consumidas="33"
+             data-restantes="-23"
+             data-alerta-cls="critico"
+             data-sesiones='[{"n": 1, "Fecha": "27/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "31/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "06/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "07/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "08/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "09/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "10/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "13/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 9, "Fecha": "14/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 10, "Fecha": "15/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 11, "Fecha": "16/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 12, "Fecha": "17/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 13, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 14, "Fecha": "21/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 15, "Fecha": "22/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 16, "Fecha": "23/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 17, "Fecha": "24/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 18, "Fecha": "27/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 19, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 20, "Fecha": "29/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 21, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 22, "Fecha": "04/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 23, "Fecha": "05/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 24, "Fecha": "06/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 25, "Fecha": "07/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 26, "Fecha": "08/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 27, "Fecha": "11/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 28, "Fecha": "12/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 29, "Fecha": "13/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 30, "Fecha": "14/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 31, "Fecha": "15/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 32, "Fecha": "18/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 33, "Fecha": "19/05/2026", "Estado": "Realizada", "fuera_pack": true}]'>
           <div class="card-top">
             <div class="paciente">Francisco Torre Vega</div>
-            <div class="alerta-badge badge-critico">🚨 CRÍTICO: 1 sesión(es) sin cobrar</div>
+            <div class="alerta-badge badge-critico">🚨 CRÍTICO: 23 sesión(es) sin cobrar</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> Marcia Reveco</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-06</span>
+            <span><strong>Inicio:</strong> 2026-03-27</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            11 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>-1 restantes</strong>
+            33 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>-23 restantes</strong>
           </div>
           <div class="barra-fondo">
             <div class="barra-fill barra-critico" style="width:100%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card rojo" data-kine="Daniela Jaque" data-nivel="urgente">
+        <div class="card critico"
+             data-kine="José Aguilar"
+             data-nivel="urgente"
+             data-paciente="Gaston Masferrer"
+             data-kine-display="José Aguilar"
+             data-inicio="2026-03-17"
+             data-contratadas="10"
+             data-consumidas="13"
+             data-restantes="-3"
+             data-alerta-cls="critico"
+             data-sesiones='[{"n": 1, "Fecha": "17/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "19/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "24/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "26/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "31/03/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 6, "Fecha": "07/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 7, "Fecha": "09/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 8, "Fecha": "14/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 9, "Fecha": "21/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 10, "Fecha": "23/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 11, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 12, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 13, "Fecha": "05/05/2026", "Estado": "Suspendida", "fuera_pack": true}, {"n": 14, "Fecha": "07/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 15, "Fecha": "12/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 16, "Fecha": "13/05/2026", "Estado": "Recuperada", "fuera_pack": true}, {"n": 17, "Fecha": "14/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 18, "Fecha": "19/05/2026", "Estado": "Realizada", "fuera_pack": true}]'>
           <div class="card-top">
-            <div class="paciente">Estanislao Sánchez</div>
+            <div class="paciente">Gaston Masferrer</div>
+            <div class="alerta-badge badge-critico">🚨 CRÍTICO: 3 sesión(es) sin cobrar</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> José Aguilar</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-03-17</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            13 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>-3 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-critico" style="width:100%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card rojo"
+             data-kine="Daniela Jaque"
+             data-nivel="urgente"
+             data-paciente="María Hannud Awad"
+             data-kine-display="Daniela Jaque"
+             data-inicio="2026-04-19"
+             data-contratadas="12"
+             data-consumidas="12"
+             data-restantes="0"
+             data-alerta-cls="rojo"
+             data-sesiones='[{"n": 1, "Fecha": "19/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "21/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "22/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "23/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "24/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "25/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "26/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 9, "Fecha": "27/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 10, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 11, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 12, "Fecha": "04/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">María Hannud Awad</div>
             <div class="alerta-badge badge-rojo">🔴 Pack terminado</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> Daniela Jaque</span>
-            <span><strong>Pack:</strong> Pack 16 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-04</span>
+            <span><strong>Pack:</strong> Pack 12 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-04-19</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            16 de 16 sesiones consumidas
+            12 de 12 sesiones consumidas
             &nbsp;·&nbsp; <strong>0 restantes</strong>
           </div>
           <div class="barra-fondo">
             <div class="barra-fill barra-rojo" style="width:100%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card naranja" data-kine="Guillermo Silva" data-nivel="pocas">
+        <div class="card rojo"
+             data-kine="Marcia Reveco"
+             data-nivel="urgente"
+             data-paciente="Adriana Carranza Gálvez"
+             data-kine-display="Marcia Reveco"
+             data-inicio="2026-02-23"
+             data-contratadas="12"
+             data-consumidas="12"
+             data-restantes="0"
+             data-alerta-cls="rojo"
+             data-sesiones='[{"n": 1, "Fecha": "24/02/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "27/02/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "04/03/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 4, "Fecha": "06/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "10/03/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 6, "Fecha": "19/03/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 7, "Fecha": "24/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "26/03/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 9, "Fecha": "02/04/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 10, "Fecha": "07/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 11, "Fecha": "14/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 12, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 13, "Fecha": "08/05/2026", "Estado": "Realizada", "fuera_pack": true}, {"n": 14, "Fecha": "15/05/2026", "Estado": "Realizada", "fuera_pack": true}]'>
           <div class="card-top">
-            <div class="paciente">Graciela González</div>
+            <div class="paciente">Adriana Carranza Gálvez</div>
+            <div class="alerta-badge badge-rojo">🔴 Pack terminado</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Marcia Reveco</span>
+            <span><strong>Pack:</strong> Pack 12 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-02-23</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            12 de 12 sesiones consumidas
+            &nbsp;·&nbsp; <strong>0 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-rojo" style="width:100%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card naranja"
+             data-kine="Guillermo Silva"
+             data-nivel="pocas"
+             data-paciente="María Victoria Lobo"
+             data-kine-display="Guillermo Silva"
+             data-inicio="2026-02-03"
+             data-contratadas="10"
+             data-consumidas="9"
+             data-restantes="1"
+             data-alerta-cls="naranja"
+             data-sesiones='[{"n": 1, "Fecha": "09/02/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "16/02/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "23/02/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "02/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "09/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "16/03/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 7, "Fecha": "23/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "30/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 9, "Fecha": "06/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 10, "Fecha": "13/04/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">María Victoria Lobo</div>
             <div class="alerta-badge badge-naranja">🟠 Queda 1 sesión</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> Guillermo Silva</span>
-            <span><strong>Pack:</strong> Pack 12 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-02-17</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-02-03</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            11 de 12 sesiones consumidas
+            9 de 10 sesiones consumidas
             &nbsp;·&nbsp; <strong>1 restantes</strong>
           </div>
           <div class="barra-fondo">
-            <div class="barra-fill barra-naranja" style="width:91%"></div>
+            <div class="barra-fill barra-naranja" style="width:90%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card amarillo" data-kine="José Aguilar" data-nivel="pocas">
+        <div class="card naranja"
+             data-kine="Sebastián de la Peña"
+             data-nivel="pocas"
+             data-paciente="Alicia Beltrán Salazar"
+             data-kine-display="Sebastián de la Peña"
+             data-inicio="2026-04-01"
+             data-contratadas="10"
+             data-consumidas="9"
+             data-restantes="1"
+             data-alerta-cls="naranja"
+             data-sesiones='[{"n": 1, "Fecha": "02/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "07/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "09/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "14/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "16/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "23/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 9, "Fecha": "07/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Maria Angelica Van Der Schraft</div>
-            <div class="alerta-badge badge-amarillo">🟡 Quedan 2 sesiones</div>
+            <div class="paciente">Alicia Beltrán Salazar</div>
+            <div class="alerta-badge badge-naranja">🟠 Queda 1 sesión</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Sebastián de la Peña</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-04-01</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            9 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>1 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-naranja" style="width:90%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card naranja"
+             data-kine="José Aguilar"
+             data-nivel="pocas"
+             data-paciente="Eugenio Quiñones"
+             data-kine-display="José Aguilar"
+             data-inicio="2026-04-09"
+             data-contratadas="10"
+             data-consumidas="9"
+             data-restantes="1"
+             data-alerta-cls="naranja"
+             data-sesiones='[{"n": 1, "Fecha": "09/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "14/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "16/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "21/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "23/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "05/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 9, "Fecha": "07/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 10, "Fecha": "12/05/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 11, "Fecha": "14/05/2026", "Estado": "Suspendida", "fuera_pack": true}]'>
+          <div class="card-top">
+            <div class="paciente">Eugenio Quiñones</div>
+            <div class="alerta-badge badge-naranja">🟠 Queda 1 sesión</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> José Aguilar</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-06</span>
+            <span><strong>Inicio:</strong> 2026-04-09</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            9 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>1 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-naranja" style="width:90%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card amarillo"
+             data-kine="Fernanda Pino"
+             data-nivel="pocas"
+             data-paciente="Ruth Ejzman"
+             data-kine-display="Fernanda Pino"
+             data-inicio="2026-03-30"
+             data-contratadas="10"
+             data-consumidas="8"
+             data-restantes="2"
+             data-alerta-cls="amarillo"
+             data-sesiones='[{"n": 1, "Fecha": "30/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "08/04/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 3, "Fecha": "15/04/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 4, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "04/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "07/05/2026", "Estado": "Recuperada", "fuera_pack": false}, {"n": 7, "Fecha": "11/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "18/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">Ruth Ejzman</div>
+            <div class="alerta-badge badge-amarillo">🟡 Quedan 2 sesiones</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Fernanda Pino</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-03-30</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -458,35 +758,117 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-amarillo" style="width:80%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Guillermo Silva" data-nivel="ok">
+        <div class="card amarillo"
+             data-kine="Patricio Orrego"
+             data-nivel="pocas"
+             data-paciente="Víctor Pedro Ramón Toso Sotomayor"
+             data-kine-display="Patricio Orrego"
+             data-inicio="2026-04-13"
+             data-contratadas="10"
+             data-consumidas="8"
+             data-restantes="2"
+             data-alerta-cls="amarillo"
+             data-sesiones='[{"n": 1, "Fecha": "13/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "15/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "17/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "22/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "24/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "27/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "29/04/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">María Victoria Lobo</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
+            <div class="paciente">Víctor Pedro Ramón Toso Sotomayor</div>
+            <div class="alerta-badge badge-amarillo">🟡 Quedan 2 sesiones</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> Guillermo Silva</span>
+            <span><strong>Kine:</strong> Patricio Orrego</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-02-03</span>
+            <span><strong>Inicio:</strong> 2026-04-13</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            7 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>3 restantes</strong>
+            8 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>2 restantes</strong>
           </div>
           <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:70%"></div>
+            <div class="barra-fill barra-amarillo" style="width:80%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="José Aguilar" data-nivel="ok">
+        <div class="card amarillo"
+             data-kine="José Aguilar"
+             data-nivel="pocas"
+             data-paciente="Maria Angelica Van Der Schraft"
+             data-kine-display="José Aguilar"
+             data-inicio="2026-04-17"
+             data-contratadas="10"
+             data-consumidas="8"
+             data-restantes="2"
+             data-alerta-cls="amarillo"
+             data-sesiones='[{"n": 1, "Fecha": "17/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "24/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "27/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "04/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "08/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "11/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "15/05/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 9, "Fecha": "18/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Virginia Vargas</div>
+            <div class="paciente">Maria Angelica Van Der Schraft</div>
+            <div class="alerta-badge badge-amarillo">🟡 Quedan 2 sesiones</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> José Aguilar</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-04-17</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            8 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>2 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-amarillo" style="width:80%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card amarillo"
+             data-kine="Katalina Correa"
+             data-nivel="pocas"
+             data-paciente="Juan Moya"
+             data-kine-display="Katalina Correa"
+             data-inicio="2026-03-17"
+             data-contratadas="10"
+             data-consumidas="8"
+             data-restantes="2"
+             data-alerta-cls="amarillo"
+             data-sesiones='[{"n": 1, "Fecha": "17/03/2026", "Estado": "Evaluación de ingreso", "fuera_pack": false}, {"n": 2, "Fecha": "19/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "24/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "26/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "30/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "02/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "06/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 8, "Fecha": "09/04/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">Juan Moya</div>
+            <div class="alerta-badge badge-amarillo">🟡 Quedan 2 sesiones</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Katalina Correa</span>
+            <span><strong>Pack:</strong> Pack 12 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-03-17</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            8 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>2 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-amarillo" style="width:80%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="José Aguilar"
+             data-nivel="ok"
+             data-paciente="Marcos Soto Helo"
+             data-kine-display="José Aguilar"
+             data-inicio="2026-04-28"
+             data-contratadas="10"
+             data-consumidas="7"
+             data-restantes="3"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "28/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "30/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "05/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "07/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "12/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 6, "Fecha": "14/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 7, "Fecha": "19/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">Marcos Soto Helo</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> José Aguilar</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-02-11</span>
+            <span><strong>Inicio:</strong> 2026-04-28</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -496,8 +878,19 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:70%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Patricio Orrego" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Patricio Orrego"
+             data-nivel="ok"
+             data-paciente="Carmen Angulo Pereira"
+             data-kine-display="Patricio Orrego"
+             data-inicio="2026-03-05"
+             data-contratadas="5"
+             data-consumidas="1"
+             data-restantes="4"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "05/03/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "09/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 3, "Fecha": "16/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 4, "Fecha": "23/04/2026", "Estado": "Suspendida", "fuera_pack": false}, {"n": 5, "Fecha": "30/04/2026", "Estado": "Suspendida", "fuera_pack": false}]'>
           <div class="card-top">
             <div class="paciente">Carmen Angulo Pereira</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
@@ -515,65 +908,49 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:20%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Patricio Orrego" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Sebastián de la Peña"
+             data-nivel="ok"
+             data-paciente="Renato Alonso Rojas"
+             data-kine-display="Sebastián de la Peña"
+             data-inicio="2026-04-27"
+             data-contratadas="10"
+             data-consumidas="5"
+             data-restantes="5"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "27/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "06/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "08/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "11/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 5, "Fecha": "13/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Víctor Pedro Ramón Toso Sotomayor</div>
+            <div class="paciente">Renato Alonso Rojas</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> Patricio Orrego</span>
+            <span><strong>Kine:</strong> Sebastián de la Peña</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-18</span>
+            <span><strong>Inicio:</strong> 2026-04-27</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            6 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>4 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:60%"></div>
-          </div>
-        </div>
-        <div class="card verde" data-kine="José Aguilar" data-nivel="ok">
-          <div class="card-top">
-            <div class="paciente">Eugenio Quiñones</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> José Aguilar</span>
-            <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-05</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            6 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>4 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:60%"></div>
-          </div>
-        </div>
-        <div class="card verde" data-kine="Guillermo Silva" data-nivel="ok">
-          <div class="card-top">
-            <div class="paciente">Perla Alvarado</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> Guillermo Silva</span>
-            <span><strong>Pack:</strong> Pack 5 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-01-02</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            1 de 6 sesiones consumidas
+            5 de 10 sesiones consumidas
             &nbsp;·&nbsp; <strong>5 restantes</strong>
           </div>
           <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:16%"></div>
+            <div class="barra-fill barra-verde" style="width:50%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Katalina Correa" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Katalina Correa"
+             data-nivel="ok"
+             data-paciente="Gerardo Bobafilla"
+             data-kine-display="Katalina Correa"
+             data-inicio="2026-03-11"
+             data-contratadas="5"
+             data-consumidas="0"
+             data-restantes="5"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
           <div class="card-top">
             <div class="paciente">Gerardo Bobafilla</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
@@ -591,54 +968,27 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:0%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Katalina Correa" data-nivel="ok">
+        <div class="card verde"
+             data-kine="José Aguilar"
+             data-nivel="ok"
+             data-paciente="Virginia Vargas"
+             data-kine-display="José Aguilar"
+             data-inicio="2026-04-22"
+             data-contratadas="10"
+             data-consumidas="4"
+             data-restantes="6"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "22/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "29/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "06/05/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 4, "Fecha": "13/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Juan Moya</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> Katalina Correa</span>
-            <span><strong>Pack:</strong> Pack 12 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-17</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            5 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>5 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:50%"></div>
-          </div>
-        </div>
-        <div class="card verde" data-kine="Marcia Reveco" data-nivel="ok">
-          <div class="card-top">
-            <div class="paciente">Adriana Carranza Gálvez</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> Marcia Reveco</span>
-            <span><strong>Pack:</strong> Pack 12 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-02-23</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            6 de 12 sesiones consumidas
-            &nbsp;·&nbsp; <strong>6 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:50%"></div>
-          </div>
-        </div>
-        <div class="card verde" data-kine="José Aguilar" data-nivel="ok">
-          <div class="card-top">
-            <div class="paciente">Gaston Masferrer</div>
+            <div class="paciente">Virginia Vargas</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> José Aguilar</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-17</span>
+            <span><strong>Inicio:</strong> 2026-04-22</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -648,35 +998,27 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:40%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Guillermo Silva" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Daniela Jaque"
+             data-nivel="ok"
+             data-paciente="Evelyn Teare"
+             data-kine-display="Daniela Jaque"
+             data-inicio="2026-04-17"
+             data-contratadas="10"
+             data-consumidas="3"
+             data-restantes="7"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "17/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "20/04/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 3, "Fecha": "22/04/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Juan Pablo Castillo Iver</div>
+            <div class="paciente">Evelyn Teare</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> Guillermo Silva</span>
+            <span><strong>Kine:</strong> Daniela Jaque</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-18</span>
-            <span><strong>Estado:</strong> Activo</span>
-          </div>
-          <div class="progreso-label">
-            4 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>6 restantes</strong>
-          </div>
-          <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:40%"></div>
-          </div>
-        </div>
-        <div class="card verde" data-kine="Sebastián de la Peña" data-nivel="ok">
-          <div class="card-top">
-            <div class="paciente">Maria Cecilia Fierro Valdes</div>
-            <div class="alerta-badge badge-verde">✅ OK</div>
-          </div>
-          <div class="card-info">
-            <span><strong>Kine:</strong> Sebastián de la Peña</span>
-            <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-19</span>
+            <span><strong>Inicio:</strong> 2026-04-17</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -686,27 +1028,49 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:30%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="José Aguilar" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Guillermo Silva"
+             data-nivel="ok"
+             data-paciente="Eliana Dauvin"
+             data-kine-display="Guillermo Silva"
+             data-inicio="2026-04-30"
+             data-contratadas="8"
+             data-consumidas="0"
+             data-restantes="8"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
           <div class="card-top">
-            <div class="paciente">Marcos Soto Helo</div>
+            <div class="paciente">Eliana Dauvin</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> José Aguilar</span>
-            <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-24</span>
+            <span><strong>Kine:</strong> Guillermo Silva</span>
+            <span><strong>Pack:</strong> Pack 8 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-04-30</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            2 de 10 sesiones consumidas
+            0 de 8 sesiones consumidas
             &nbsp;·&nbsp; <strong>8 restantes</strong>
           </div>
           <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:20%"></div>
+            <div class="barra-fill barra-verde" style="width:0%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Guillermo Silva" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Guillermo Silva"
+             data-nivel="ok"
+             data-paciente="Monica Mancini"
+             data-kine-display="Guillermo Silva"
+             data-inicio="2026-01-20"
+             data-contratadas="10"
+             data-consumidas="2"
+             data-restantes="8"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "20/01/2026", "Estado": "Realizada", "fuera_pack": false}, {"n": 2, "Fecha": "27/01/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
             <div class="paciente">Monica Mancini</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
@@ -724,35 +1088,57 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:20%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Sebastián de la Peña" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Sebastián de la Peña"
+             data-nivel="ok"
+             data-paciente="Marina Valenzuela Faundez"
+             data-kine-display="Sebastián de la Peña"
+             data-inicio="2026-03-27"
+             data-contratadas="10"
+             data-consumidas="2"
+             data-restantes="8"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "27/03/2026", "Estado": "Evaluación de ingreso", "fuera_pack": false}, {"n": 2, "Fecha": "31/03/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Renato Alonso Rojas</div>
+            <div class="paciente">Marina Valenzuela Faundez</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
             <span><strong>Kine:</strong> Sebastián de la Peña</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-26</span>
+            <span><strong>Inicio:</strong> 2026-03-27</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
-            1 de 10 sesiones consumidas
-            &nbsp;·&nbsp; <strong>9 restantes</strong>
+            2 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>8 restantes</strong>
           </div>
           <div class="barra-fondo">
-            <div class="barra-fill barra-verde" style="width:10%"></div>
+            <div class="barra-fill barra-verde" style="width:20%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Fernanda Pino" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Katalina Correa"
+             data-nivel="ok"
+             data-paciente="Carmen Eliana Bachmann Arismendi"
+             data-kine-display="Katalina Correa"
+             data-inicio="2026-05-13"
+             data-contratadas="10"
+             data-consumidas="1"
+             data-restantes="9"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "13/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
           <div class="card-top">
-            <div class="paciente">Ruth Ejzman</div>
+            <div class="paciente">Carmen Eliana Bachmann Arismendi</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> Fernanda Pino</span>
+            <span><strong>Kine:</strong> Katalina Correa</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-30</span>
+            <span><strong>Inicio:</strong> 2026-05-13</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -762,8 +1148,49 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:10%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="José Aguilar" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Sebastián de la Peña"
+             data-nivel="ok"
+             data-paciente="Ricardo Hempel y Esposa"
+             data-kine-display="Sebastián de la Peña"
+             data-inicio="2026-05-08"
+             data-contratadas="10"
+             data-consumidas="1"
+             data-restantes="9"
+             data-alerta-cls="verde"
+             data-sesiones='[{"n": 1, "Fecha": "13/05/2026", "Estado": "Realizada", "fuera_pack": false}]'>
+          <div class="card-top">
+            <div class="paciente">Ricardo Hempel y Esposa</div>
+            <div class="alerta-badge badge-verde">✅ OK</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Sebastián de la Peña</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-05-08</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            1 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>9 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-verde" style="width:10%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="José Aguilar"
+             data-nivel="ok"
+             data-paciente="Sofía Álvarez"
+             data-kine-display="José Aguilar"
+             data-inicio="2025-11-14"
+             data-contratadas="10"
+             data-consumidas="0"
+             data-restantes="10"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
           <div class="card-top">
             <div class="paciente">Sofía Álvarez</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
@@ -781,16 +1208,27 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:0%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
-        <div class="card verde" data-kine="Guillermo Silva" data-nivel="ok">
+        <div class="card verde"
+             data-kine="Marcia Reveco"
+             data-nivel="ok"
+             data-paciente="Inés lagunas Fuentes"
+             data-kine-display="Marcia Reveco"
+             data-inicio="2026-04-13"
+             data-contratadas="10"
+             data-consumidas="0"
+             data-restantes="10"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
           <div class="card-top">
-            <div class="paciente">Eliana Dauvin</div>
+            <div class="paciente">Inés lagunas Fuentes</div>
             <div class="alerta-badge badge-verde">✅ OK</div>
           </div>
           <div class="card-info">
-            <span><strong>Kine:</strong> Guillermo Silva</span>
+            <span><strong>Kine:</strong> Marcia Reveco</span>
             <span><strong>Pack:</strong> Pack 10 sesiones</span>
-            <span><strong>Inicio:</strong> 2026-03-11</span>
+            <span><strong>Inicio:</strong> 2026-04-13</span>
             <span><strong>Estado:</strong> Activo</span>
           </div>
           <div class="progreso-label">
@@ -800,6 +1238,127 @@
           <div class="barra-fondo">
             <div class="barra-fill barra-verde" style="width:0%"></div>
           </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="Francisca Campos"
+             data-nivel="ok"
+             data-paciente="Pauline Elsner"
+             data-kine-display="Francisca Campos"
+             data-inicio="2026-05-05"
+             data-contratadas="10"
+             data-consumidas="0"
+             data-restantes="10"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
+          <div class="card-top">
+            <div class="paciente">Pauline Elsner</div>
+            <div class="alerta-badge badge-verde">✅ OK</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Francisca Campos</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-05-05</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            0 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>10 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-verde" style="width:0%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="Francisca Campos"
+             data-nivel="ok"
+             data-paciente="Andrés Jeanneret"
+             data-kine-display="Francisca Campos"
+             data-inicio="2026-05-05"
+             data-contratadas="10"
+             data-consumidas="0"
+             data-restantes="10"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
+          <div class="card-top">
+            <div class="paciente">Andrés Jeanneret</div>
+            <div class="alerta-badge badge-verde">✅ OK</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Francisca Campos</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-05-05</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            0 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>10 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-verde" style="width:0%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="Sebastián Nazar"
+             data-nivel="ok"
+             data-paciente="Prueba 3"
+             data-kine-display="Sebastián Nazar"
+             data-inicio="2026-03-30"
+             data-contratadas="10"
+             data-consumidas="0"
+             data-restantes="10"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
+          <div class="card-top">
+            <div class="paciente">Prueba 3</div>
+            <div class="alerta-badge badge-verde">✅ OK</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Sebastián Nazar</span>
+            <span><strong>Pack:</strong> Pack 10 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-03-30</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            0 de 10 sesiones consumidas
+            &nbsp;·&nbsp; <strong>10 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-verde" style="width:0%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
+        </div>
+        <div class="card verde"
+             data-kine="Guillermo Silva"
+             data-nivel="ok"
+             data-paciente="Graciela González"
+             data-kine-display="Guillermo Silva"
+             data-inicio="2026-05-16"
+             data-contratadas="12"
+             data-consumidas="0"
+             data-restantes="12"
+             data-alerta-cls="verde"
+             data-sesiones='[]'>
+          <div class="card-top">
+            <div class="paciente">Graciela González</div>
+            <div class="alerta-badge badge-verde">✅ OK</div>
+          </div>
+          <div class="card-info">
+            <span><strong>Kine:</strong> Guillermo Silva</span>
+            <span><strong>Pack:</strong> Pack 12 sesiones</span>
+            <span><strong>Inicio:</strong> 2026-05-16</span>
+            <span><strong>Estado:</strong> Activo</span>
+          </div>
+          <div class="progreso-label">
+            0 de 12 sesiones consumidas
+            &nbsp;·&nbsp; <strong>12 restantes</strong>
+          </div>
+          <div class="barra-fondo">
+            <div class="barra-fill barra-verde" style="width:0%"></div>
+          </div>
+          <button class="btn-detalle">Ver detalle de sesiones ›</button>
         </div>
     <div class="sin-resultados" id="sin-resultados">No hay pacientes que coincidan con los filtros seleccionados.</div>
   </div>
@@ -810,26 +1369,51 @@
     </video>
   </div>
 
+  <!-- Modal historial de sesiones -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">✕</button>
+      <div class="modal-header">
+        <h2 id="modal-paciente"></h2>
+        <p id="modal-sub"></p>
+      </div>
+      <div class="modal-resumen" id="modal-resumen"></div>
+      <div class="modal-tabla-wrap">
+        <table class="modal-tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="modal-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-leyenda">
+        ✅ Realizada &nbsp;·&nbsp; 🔄 Recuperada &nbsp;·&nbsp; ⏸️ Suspendida &nbsp;·&nbsp; ⚠️ Fuera del pack
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
-      var selectKine   = document.getElementById('filtro-kine');
-      var btnAlertas   = document.querySelectorAll('.btn-alerta');
-      var cards        = document.querySelectorAll('#grid-cards .card');
+      var selectKine    = document.getElementById('filtro-kine');
+      var btnAlertas    = document.querySelectorAll('.btn-alerta');
+      var cards         = document.querySelectorAll('#grid-cards .card');
       var sinResultados = document.getElementById('sin-resultados');
-      var nivelActivo  = 'todos';
+      var nivelActivo   = 'todos';
 
       function aplicarFiltros() {
         var kineSeleccionado = selectKine.value;
         var visibles = 0;
-
         cards.forEach(function (card) {
           var matchKine  = kineSeleccionado === 'todos' || card.dataset.kine === kineSeleccionado;
-          var matchNivel = nivelActivo === 'todos'   || card.dataset.nivel === nivelActivo;
+          var matchNivel = nivelActivo === 'todos' || card.dataset.nivel === nivelActivo;
           var mostrar    = matchKine && matchNivel;
           card.style.display = mostrar ? '' : 'none';
           if (mostrar) visibles++;
         });
-
         sinResultados.style.display = visibles === 0 ? 'block' : 'none';
       }
 
@@ -842,6 +1426,92 @@
           nivelActivo = btn.dataset.nivel;
           aplicarFiltros();
         });
+      });
+
+      /* ── MODAL ── */
+      var overlay  = document.getElementById('modal-overlay');
+      var closeBtn = document.getElementById('modal-close-btn');
+
+      function estadoEmoji(estado) {
+        var map = {
+          'Realizada':             '✅',
+          'Recuperada':            '🔄',
+          'Evaluación de ingreso': '✅',
+          'Suspendida':            '⏸️'
+        };
+        return (map[estado] || '') + ' ' + estado;
+      }
+
+      function abrirModal(card) {
+        var paciente    = card.dataset.paciente;
+        var kine        = card.dataset.kineDisplay;
+        var inicio      = card.dataset.inicio;
+        var contratadas = parseInt(card.dataset.contratadas) || 0;
+        var consumidas  = parseInt(card.dataset.consumidas)  || 0;
+        var restantes   = parseInt(card.dataset.restantes);
+        var alertaCls   = card.dataset.alertaCls;
+        var sesiones    = JSON.parse(card.dataset.sesiones);
+
+        document.getElementById('modal-paciente').textContent = paciente;
+        document.getElementById('modal-sub').textContent =
+          'Kine: ' + kine + '  ·  Inicio pack: ' + inicio;
+
+        var resumenEl = document.getElementById('modal-resumen');
+        var chipRestClass = 'chip-restantes-' + alertaCls;
+        resumenEl.innerHTML =
+          '<div class="modal-chip chip-contratadas">' +
+            '<span class="modal-chip-num">' + contratadas + '</span>' +
+            '<span class="modal-chip-label">Contratadas</span>' +
+          '</div>' +
+          '<div class="modal-chip chip-consumidas">' +
+            '<span class="modal-chip-num">' + consumidas + '</span>' +
+            '<span class="modal-chip-label">Consumidas</span>' +
+          '</div>' +
+          '<div class="modal-chip ' + chipRestClass + '">' +
+            '<span class="modal-chip-num">' + restantes + '</span>' +
+            '<span class="modal-chip-label">Restantes</span>' +
+          '</div>';
+
+        var tbody = document.getElementById('modal-tbody');
+        tbody.innerHTML = '';
+        if (sesiones.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#718096;padding:20px">Sin sesiones registradas</td></tr>';
+        } else {
+          sesiones.forEach(function (s) {
+            var tr = document.createElement('tr');
+            if (s.fuera_pack) tr.classList.add('fuera-pack');
+            var prefix = s.fuera_pack ? '⚠️ ' : '';
+            tr.innerHTML =
+              '<td>' + prefix + s.n + '</td>' +
+              '<td>' + s.Fecha + '</td>' +
+              '<td>' + estadoEmoji(s.Estado) + '</td>';
+            tbody.appendChild(tr);
+          });
+        }
+
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      document.getElementById('grid-cards').addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-detalle');
+        if (!btn) return;
+        abrirModal(btn.closest('.card'));
+      });
+
+      function cerrarModal() {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      closeBtn.addEventListener('click', cerrarModal);
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) cerrarModal();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') cerrarModal();
       });
     })();
   </script>
