@@ -223,7 +223,8 @@ def enviar_alertas_whatsapp(df, dry_run=False):
     with open(config_path, encoding="utf-8") as f:
         config = json.load(f)
 
-    fijos = config["whatsapp"]["fijos"]
+    fijos        = config["whatsapp"]["fijos"]
+    plantillas_cfg = config["plantillas"]
     # Normalizar claves del config para comparación robusta
     kines_cfg = {normalizar(k): v for k, v in config["whatsapp"]["kines"].items()}
 
@@ -234,7 +235,7 @@ def enviar_alertas_whatsapp(df, dry_run=False):
 
     sid   = os.getenv("TWILIO_ACCOUNT_SID")
     token = os.getenv("TWILIO_AUTH_TOKEN")
-    from_ = "whatsapp:+14155238886"
+    from_ = "whatsapp:+19016575967"
 
     if not dry_run:
         if not sid or not token:
@@ -286,31 +287,30 @@ def enviar_alertas_whatsapp(df, dry_run=False):
             else:
                 print(f"   ⚠️  Kine '{kine}' no está en config.json — se omite su número")
 
-        if restantes_int < 0:
-            detalle_restantes = f"⚠️ {abs(restantes_int)} sesión(es) SIN COBRAR"
+        # Seleccionar plantilla y variables según nivel de alerta
+        if restantes_int == 1:
+            content_sid       = plantillas_cfg["kx_pack_queda_1"]
+            content_variables = {"1": paciente, "2": kine}
+            desc_plantilla    = "kx_pack_queda_1"
         elif restantes_int == 0:
-            detalle_restantes = "Pack terminado (0 restantes)"
-        else:
-            detalle_restantes = f"Queda 1 sesión"
-
-        mensaje = (
-            f"⚠️ *Alerta Pack Kinexperience*\n"
-            f"Paciente: {paciente}\n"
-            f"Kine: {kine}\n"
-            f"Sesiones restantes: {restantes_int} — {detalle_restantes}"
-        )
+            content_sid       = plantillas_cfg["kx_pack_terminado"]
+            content_variables = {"1": paciente, "2": kine}
+            desc_plantilla    = "kx_pack_terminado"
+        else:  # < 0
+            content_sid       = plantillas_cfg["kx_pack_critico"]
+            content_variables = {"1": paciente, "2": kine, "3": str(abs(restantes_int))}
+            desc_plantilla    = "kx_pack_critico"
 
         for numero in destinatarios:
             if dry_run:
-                print(f"   [DRY-RUN] → whatsapp:{numero}")
-                print(f"   {mensaje}")
-                print()
+                print(f"   [DRY-RUN] → whatsapp:{numero} | template: {desc_plantilla} | vars: {content_variables}")
             else:
                 try:
                     msg = twilio_client.messages.create(
                         from_=from_,
                         to=f"whatsapp:{numero}",
-                        body=mensaje
+                        content_sid=content_sid,
+                        content_variables=json.dumps(content_variables)
                     )
                     print(f"   ✅ {numero} | SID: {msg.sid} | status: {msg.status}")
                 except Exception as e:
