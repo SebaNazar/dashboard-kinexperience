@@ -1042,12 +1042,24 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
         if (sesiones.length === 0) {{
           tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#718096;padding:20px">Sin sesiones registradas</td></tr>';
         }} else {{
+          var contador = 0;
+          var efectivos = ['Realizada', 'Recuperada', 'Evaluación de ingreso'];
           sesiones.forEach(function (s) {{
             var tr = document.createElement('tr');
-            if (s.fuera_pack) tr.classList.add('fuera-pack');
-            var prefix = s.fuera_pack ? '⚠️ ' : '';
+            var celda;
+            if (efectivos.indexOf(s.Estado) !== -1) {{
+              contador++;
+              if (contador > contratadas) {{
+                tr.classList.add('fuera-pack');
+                celda = '⚠️ #' + contador;
+              }} else {{
+                celda = '#' + contador;
+              }}
+            }} else {{
+              celda = '—';
+            }}
             tr.innerHTML =
-              '<td>' + prefix + s.n + '</td>' +
+              '<td>' + celda + '</td>' +
               '<td>' + s.Fecha + '</td>' +
               '<td>' + estadoEmoji(s.Estado) + '</td>';
             tbody.appendChild(tr);
