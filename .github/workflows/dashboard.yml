@@ -39,6 +39,11 @@ jobs:
             pandas \
             python-dotenv
 
+      - name: Reconstruir config.json
+        env:
+          DASHBOARD_CONFIG: ${{ secrets.DASHBOARD_CONFIG }}
+        run: echo "$DASHBOARD_CONFIG" > config.json
+
       - name: Ejecutar dashboard
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
