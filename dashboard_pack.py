@@ -95,7 +95,7 @@ def calcular_dashboard(ficha, registro):
         registro['Fecha de la sesión realizada'], dayfirst=True, errors='coerce'
     )
 
-    estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso']
+    estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Sesión grupal']
     estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida']
 
     registro_valido = registro[registro['Estado de la sesión'].isin(estados_consumidos)]
