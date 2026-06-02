@@ -19,9 +19,10 @@ TOKEN_PATH       = os.getenv("TOKEN_PATH")
 CLIENT_ID        = os.getenv("CLIENT_ID")
 CLIENT_SECRET    = os.getenv("CLIENT_SECRET")
 
-PESTAÑA_FICHA    = "Ficha Central"
-PESTAÑA_REGISTRO = "Respuestas de formulario 1"
-PESTAÑA_OUTPUT   = "Dashboard Pack"
+PESTAÑA_FICHA         = "Ficha Central"
+PESTAÑA_REGISTRO      = "Respuestas de formulario 1"
+PESTAÑA_OUTPUT        = "Dashboard Pack"
+PESTAÑA_ALERTAS_STATE = "Alertas State"
 
 # ── NORMALIZACIÓN DE NOMBRES ────────────────────────────────────
 def normalizar(texto):
@@ -210,11 +211,30 @@ def escribir_dashboard(cliente, df):
     print(f"✅ Dashboard escrito en pestaña '{PESTAÑA_OUTPUT}'")
     print(f"   {len(df)} pacientes pack procesados")
 
+# ── STATE DE ALERTAS EN SHEETS ──────────────────────────────────
+def leer_state_alertas(sheet):
+    try:
+        ws = sheet.worksheet(PESTAÑA_ALERTAS_STATE)
+        rows = ws.get_all_values()
+        return {row[0]: row[1] for row in rows if len(row) >= 2 and row[0]}
+    except Exception:
+        return {}
+
+def guardar_state_alertas(sheet, estado):
+    try:
+        ws = sheet.worksheet(PESTAÑA_ALERTAS_STATE)
+        ws.clear()
+    except Exception:
+        ws = sheet.add_worksheet(title=PESTAÑA_ALERTAS_STATE, rows=100, cols=2)
+    filas = [[paciente, valor] for paciente, valor in estado.items()]
+    if filas:
+        ws.update(filas, 'A1')
+    print(f"✅ State de alertas guardado en Sheets ({len(filas)} pacientes)")
+
 # ── ALERTAS WHATSAPP ────────────────────────────────────────────
-def enviar_alertas_whatsapp(df, dry_run=False):
+def enviar_alertas_whatsapp(cliente, df, dry_run=False):
     script_dir  = Path(__file__).parent
     config_path = script_dir / "config.json"
-    state_path  = script_dir / ".whatsapp_alertas_state.json"
 
     if not config_path.exists():
         print("⚠️  config.json no encontrado — saltando alertas WhatsApp")
@@ -228,10 +248,10 @@ def enviar_alertas_whatsapp(df, dry_run=False):
     # Normalizar claves del config para comparación robusta
     kines_cfg = {normalizar(k): v for k, v in config["whatsapp"]["kines"].items()}
 
-    estado_previo = {}
-    if state_path.exists():
-        with open(state_path, encoding="utf-8") as f:
-            estado_previo = json.load(f)
+    ficha_sheet = cliente.open_by_key(FICHA_CENTRAL_ID)
+    print("   Leyendo state de alertas desde Sheets...")
+    estado_previo = leer_state_alertas(ficha_sheet)
+    print(f"   State previo: {len(estado_previo)} pacientes registrados")
 
     sid   = os.getenv("TWILIO_ACCOUNT_SID")
     token = os.getenv("TWILIO_AUTH_TOKEN")
@@ -319,8 +339,8 @@ def enviar_alertas_whatsapp(df, dry_run=False):
         estado_nuevo[paciente] = estado_actual
         alertas_enviadas += 1
 
-    with open(state_path, "w", encoding="utf-8") as f:
-        json.dump(estado_nuevo, f, ensure_ascii=False, indent=2)
+    if not dry_run:
+        guardar_state_alertas(ficha_sheet, estado_nuevo)
 
     modo = "[DRY-RUN] " if dry_run else ""
     print(f"✅ {modo}Alertas WhatsApp procesadas: {alertas_enviadas} paciente(s) con cambio de estado")
@@ -1129,7 +1149,7 @@ def main():
 
     if not args.no_whatsapp:
         print("\nProcesando alertas WhatsApp...")
-        enviar_alertas_whatsapp(dashboard, dry_run=args.dry_run)
+        enviar_alertas_whatsapp(cliente, dashboard, dry_run=args.dry_run)
     else:
         print("\n⏭️  Alertas WhatsApp desactivadas (--no-whatsapp)")
 
