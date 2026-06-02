@@ -37,7 +37,8 @@ jobs:
             google-auth \
             google-auth-oauthlib \
             pandas \
-            python-dotenv
+            python-dotenv \
+            twilio
 
       - name: Reconstruir config.json
         env:
