@@ -97,7 +97,7 @@ def calcular_dashboard(ficha, registro):
     )
 
     estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Sesión Grupal', 'Grupal']
-    estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida', 'Grupal']
+    estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida', 'Grupal', 'Sesión Grupal']
 
     registro_valido = registro[registro['Estado de la sesión'].isin(estados_consumidos)]
     registro_modal  = registro[registro['Estado de la sesión'].isin(estados_modal)]
@@ -1023,7 +1023,8 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
           'Recuperada':            '🔄',
           'Evaluación de ingreso': '✅',
           'Suspendida':            '⏸️',
-          'Grupal':                '👥'
+          'Grupal':                '👥',
+          'Sesión Grupal':         '👥'
         }};
         return (map[estado] || '') + ' ' + estado;
       }}
@@ -1064,7 +1065,7 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
           tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#718096;padding:20px">Sin sesiones registradas</td></tr>';
         }} else {{
           var contador = 0;
-          var efectivos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Grupal'];
+          var efectivos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Grupal', 'Sesión Grupal'];
           sesiones.forEach(function (s) {{
             var tr = document.createElement('tr');
             var celda;
