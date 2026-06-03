@@ -96,8 +96,8 @@ def calcular_dashboard(ficha, registro):
         registro['Fecha de la sesión realizada'], dayfirst=True, errors='coerce'
     )
 
-    estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Sesión Grupal']
-    estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida']
+    estados_consumidos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Sesión Grupal', 'Grupal']
+    estados_modal      = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Suspendida', 'Grupal']
 
     registro_valido = registro[registro['Estado de la sesión'].isin(estados_consumidos)]
     registro_modal  = registro[registro['Estado de la sesión'].isin(estados_modal)]
@@ -976,7 +976,7 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
         </table>
       </div>
       <div class="modal-leyenda">
-        ✅ Realizada &nbsp;·&nbsp; 🔄 Recuperada &nbsp;·&nbsp; ⏸️ Suspendida &nbsp;·&nbsp; ⚠️ Fuera del pack
+        ✅ Realizada &nbsp;·&nbsp; 🔄 Recuperada &nbsp;·&nbsp; ⏸️ Suspendida &nbsp;·&nbsp; 👥 Grupal &nbsp;·&nbsp; ⚠️ Fuera del pack
       </div>
     </div>
   </div>
@@ -1022,7 +1022,8 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
           'Realizada':             '✅',
           'Recuperada':            '🔄',
           'Evaluación de ingreso': '✅',
-          'Suspendida':            '⏸️'
+          'Suspendida':            '⏸️',
+          'Grupal':                '👥'
         }};
         return (map[estado] || '') + ' ' + estado;
       }}
@@ -1063,7 +1064,7 @@ def generar_html(df, sesiones_por_paciente, output_path="index.html"):
           tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#718096;padding:20px">Sin sesiones registradas</td></tr>';
         }} else {{
           var contador = 0;
-          var efectivos = ['Realizada', 'Recuperada', 'Evaluación de ingreso'];
+          var efectivos = ['Realizada', 'Recuperada', 'Evaluación de ingreso', 'Grupal'];
           sesiones.forEach(function (s) {{
             var tr = document.createElement('tr');
             var celda;
