@@ -1,6 +1,6 @@
 import argparse
 import gspread
-from gspread.exceptions import APIError
+from gspread.exceptions import APIError, WorksheetNotFound
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 import pandas as pd
@@ -256,12 +256,35 @@ def escribir_dashboard(cliente, df):
 
 # ── STATE DE ALERTAS EN SHEETS ──────────────────────────────────
 def leer_state_alertas(sheet):
+    """El state persistido, o {} si la pestaña todavía no existe.
+
+    ⚠️ La distinción entre «la pestaña no existe» y «no se pudo leer» es el
+    corazón de esta función, y hasta el 23-ago-2026 no estaba: un
+    `except Exception: return {}` devolvía state vacío ante CUALQUIER error,
+    incluido un 503 transitorio de Google. Con el state vacío,
+    `estado_previo.get(paciente)` da None para todos, ningún None coincide con
+    el estado actual, y por lo tanto **todos** los pacientes en alerta cuentan
+    como cambio: ~30 WhatsApp falsos a los kines y a Mauricio por un error de
+    red de dos segundos.
+
+    Ahora sólo `WorksheetNotFound` —el caso real para el que se escribió ese
+    except, la primera corrida antes de que la pestaña exista— devuelve {}.
+    Cualquier otro error se propaga, y quien llama decide: ver
+    `enviar_alertas_whatsapp`, que ante esto se saltea el ciclo sin avisar a
+    nadie. Saltear 30 minutos de alertas no cuesta nada; treinta mensajes
+    falsos sí.
+    """
     try:
-        ws = sheet.worksheet(PESTAÑA_ALERTAS_STATE)
-        rows = ws.get_all_values()
-        return {row[0]: row[1] for row in rows if len(row) >= 2 and row[0]}
-    except Exception:
+        ws = _con_reintento(f"abrir la pestaña «{PESTAÑA_ALERTAS_STATE}»",
+                            lambda: sheet.worksheet(PESTAÑA_ALERTAS_STATE))
+    except WorksheetNotFound:
+        print(f"   ℹ️  La pestaña «{PESTAÑA_ALERTAS_STATE}» no existe todavía "
+              f"— se parte de un state vacío")
         return {}
+
+    rows = _con_reintento(f"leer «{PESTAÑA_ALERTAS_STATE}»",
+                          lambda: ws.get_all_values())
+    return {row[0]: row[1] for row in rows if len(row) >= 2 and row[0]}
 
 def guardar_state_alertas(sheet, estado):
     try:
@@ -291,9 +314,20 @@ def enviar_alertas_whatsapp(cliente, df, dry_run=False):
     # Normalizar claves del config para comparación robusta
     kines_cfg = {normalizar(k): v for k, v in config["whatsapp"]["kines"].items()}
 
-    ficha_sheet = cliente.open_by_key(FICHA_CENTRAL_ID)
-    print("   Leyendo state de alertas desde Sheets...")
-    estado_previo = leer_state_alertas(ficha_sheet)
+    # Sin state confiable no se manda NADA. Un state que no se pudo leer haría
+    # ver a todos los pacientes como recién cambiados y dispararía una alerta
+    # por cada uno. Saltear este ciclo es gratis: el state no avanza, así que
+    # las alertas legítimas salen en la corrida siguiente, dentro de 30 minutos.
+    try:
+        ficha_sheet = _con_reintento("abrir la Ficha Central",
+                                     lambda: cliente.open_by_key(FICHA_CENTRAL_ID))
+        print("   Leyendo state de alertas desde Sheets...")
+        estado_previo = leer_state_alertas(ficha_sheet)
+    except Exception as e:
+        print(f"   ⛔ No se pudo leer el state de alertas ({type(e).__name__}: "
+              f"{str(e)[:120]}). Se saltea el envío de alertas en esta corrida "
+              f"para no avisar de más; se reintenta en la próxima.")
+        return
     print(f"   State previo: {len(estado_previo)} pacientes registrados")
 
     sid   = os.getenv("TWILIO_ACCOUNT_SID")
