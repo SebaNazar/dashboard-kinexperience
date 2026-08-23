@@ -76,7 +76,13 @@ mano el run zombie (`gh run cancel 31254628920`).
 
 ---
 
-## Un 503 al leer el state puede disparar una avalancha de WhatsApp
+## ~~Un 503 al leer el state puede disparar una avalancha de WhatsApp~~ — RESUELTO
+
+> ✅ **Resuelto el 23-ago-2026** en el commit `8692fdb`. Ahora sólo
+> `WorksheetNotFound` devuelve `{}`; cualquier otro error propaga y
+> `enviar_alertas_whatsapp` se saltea el ciclo sin avisar a nadie, sin hacer
+> fallar la publicación del dashboard. Se deja escrito el análisis porque
+> explica por qué el `except` amplio era peligroso.
 
 **Qué pasa.** `leer_state_alertas()` se traga cualquier excepción y devuelve un
 diccionario vacío:
