@@ -1,8 +1,10 @@
 import argparse
 import gspread
+from gspread.exceptions import APIError
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 import pandas as pd
+import time
 import unicodedata
 import json
 import os
@@ -70,11 +72,52 @@ def conectar():
 
     return gspread.authorize(creds)
 
+# ── REINTENTOS ANTE ERRORES TRANSITORIOS DE GOOGLE ──────────────
+# Google Sheets devuelve 503 de forma intermitente al abrir un sheet. Entre
+# julio y agosto de 2026 eso tumbó entre el 6% y el 33% de las corridas de cada
+# día, siempre en la misma línea y siempre recuperándose solo en el ciclo
+# siguiente. Reintentar es la respuesta correcta a un error que se arregla solo.
+#
+# ⚠️ Se reintentan SÓLO los códigos transitorios. Un 403 (permisos) o un 404
+# (id equivocado) se propagan tal cual: reintentarlos no los arregla, retrasa
+# el fallo y esconde la causa real detrás de tres esperas. Si el código no se
+# puede leer del error, tampoco se reintenta — una forma de error que no
+# conocemos es justo la que conviene ver, no tragarse.
+CODIGOS_TRANSITORIOS = {429, 500, 502, 503, 504}
+INTENTOS_MAX = 4
+ESPERAS = [2, 4, 8]   # segundos antes de cada reintento; el 4º ya no espera
+
+
+def _codigo_http(error):
+    """El status code de un APIError de gspread, o None si no se puede leer."""
+    respuesta = getattr(error, "response", None)
+    return getattr(respuesta, "status_code", None)
+
+
+def _con_reintento(descripcion, funcion):
+    """Ejecuta `funcion`, reintentando sólo ante errores transitorios de Google."""
+    for intento in range(INTENTOS_MAX):
+        try:
+            return funcion()
+        except APIError as e:
+            codigo = _codigo_http(e)
+            es_ultimo = intento == INTENTOS_MAX - 1
+            if codigo not in CODIGOS_TRANSITORIOS or es_ultimo:
+                raise
+            espera = ESPERAS[intento]
+            print(f"   ⚠️  {descripcion}: HTTP {codigo} transitorio "
+                  f"(intento {intento + 1}/{INTENTOS_MAX}) — reintentando en {espera}s")
+            time.sleep(espera)
+
+
 # ── LEER SHEETS ─────────────────────────────────────────────────
 def leer_sheet(cliente, sheet_id, pestaña):
-    sheet = cliente.open_by_key(sheet_id)
-    ws = sheet.worksheet(pestaña)
-    datos = ws.get_all_records()
+    sheet = _con_reintento(f"abrir el sheet {sheet_id[:6]}…",
+                           lambda: cliente.open_by_key(sheet_id))
+    ws    = _con_reintento(f"abrir la pestaña «{pestaña}»",
+                           lambda: sheet.worksheet(pestaña))
+    datos = _con_reintento(f"leer «{pestaña}»",
+                           lambda: ws.get_all_records())
     return pd.DataFrame(datos)
 
 # ── LÓGICA PRINCIPAL ────────────────────────────────────────────
